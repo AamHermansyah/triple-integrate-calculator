@@ -1,6 +1,11 @@
 import Latex from "react-latex";
 
-function Integral() {
+interface propTypes {
+  onChangeMinIntegral: (value: number) => void,
+  onChangeMaxIntegral: (value: number) => void
+}
+
+function Integral({ onChangeMaxIntegral, onChangeMinIntegral }: propTypes) {
   const fraction = '$\\int$';
 
   return (
@@ -10,12 +15,16 @@ function Integral() {
       </Latex>
       <div className="integral-input-container">
         <input
-          type="text"
+          type="number"
+          defaultValue="0"
           className="relative -left-6 -top-6 integral-input w-[25px] text-center"
+          onChange={(e) => onChangeMaxIntegral(+e.target.value)}
         />
         <input
-          type="text"
+          type="number"
+          defaultValue="0"
           className="relative -left-10 -bottom-4 integral-input w-[25px] text-center"
+          onChange={(e) => onChangeMinIntegral(+e.target.value)}
         />
       </div>
     </div>

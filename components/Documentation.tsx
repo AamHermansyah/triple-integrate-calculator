@@ -15,7 +15,7 @@ function Documentation() {
       <h1 className="text-2xl font-bold text-sky-500">
         Panduan Umum
       </h1>
-      <div className="my-4 text-gray-300">
+      <div className="my-2 text-gray-300">
         <h4 className="text-xl font-bold text-sky-500">
           Cara menggunakan kalkulator
         </h4>
