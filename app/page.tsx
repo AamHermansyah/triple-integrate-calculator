@@ -9,15 +9,18 @@ import Integral from "@/components/Integral";
 import Loading from "@/components/Loading";
 import Result from "@/components/Result";
 import Title from "@/components/Title";
-import { calculateTripleIntegral } from "@/utils/helper";
+import { ResolveResult, calculateTripleIntegral } from "@/utils/helper";
 import Script from "next/script";
 import { useEffect, useState } from "react";
 import Latex from 'react-latex';
+import { Triangle } from "react-loader-spinner";
 
 export default function Home() {
   const [loading, setLoading] = useState(true);
   const [operations, setOperations] = useState('$xyz$');
-  const [activeButtonIndex, setActiveButtonIndex] = useState(1);
+  const [latexSteps, setLatexSteps] = useState<string[] | null>(null);
+  const [activeButtonIndex, setActiveButtonIndex] = useState(0);
+  const [loadingResult, setLoadingResult] = useState(false);
   const [func, setFunc] = useState('xyz');
   const [xLower, setXLower] = useState(0);
   const [xUpper, setXUpper] = useState(0);
@@ -33,10 +36,15 @@ export default function Home() {
       zLower, zUpper,
     }
 
-    calculateTripleIntegral(func, configs, 100)
-      // .then((result) => {
-      //   console.log(`hasil`, result);
-      // });
+    setLoadingResult(true);
+    setActiveButtonIndex(0);
+
+    calculateTripleIntegral(func, configs)
+      .then((response) => {
+        const { func, lowerUpperBond, result, steps } = response as ResolveResult;
+        setLatexSteps(steps);
+        setLoadingResult(false);
+      });
   }
 
   useEffect(() => {
@@ -56,16 +64,16 @@ export default function Home() {
             <div className="flex items-center gap-1">
               <div className="flex">
                 <Integral
-                  onChangeMinIntegral={(value) => setXLower(value)}
-                  onChangeMaxIntegral={(value) => setXUpper(value)}
+                  onChangeMinIntegral={(value) => setZLower(value)}
+                  onChangeMaxIntegral={(value) => setZUpper(value)}
                 />
                 <Integral
                   onChangeMinIntegral={(value) => setYLower(value)}
                   onChangeMaxIntegral={(value) => setYUpper(value)}
                 />
                 <Integral
-                  onChangeMinIntegral={(value) => setZLower(value)}
-                  onChangeMaxIntegral={(value) => setZUpper(value)}
+                  onChangeMinIntegral={(value) => setXLower(value)}
+                  onChangeMaxIntegral={(value) => setXUpper(value)}
                 />
               </div>
               <Latex>
@@ -106,7 +114,29 @@ export default function Home() {
               ))}
           </div>
           <div>
-            { activeButtonIndex === 0 && <Result /> }
+            { activeButtonIndex === 0 && (
+              <div>
+                {loadingResult && (
+                  <div className="flex flex-col items-center justify-center">
+                    <Triangle
+                      height="80"
+                      width="80"
+                      color="#009fc2"
+                      ariaLabel="triangle-loading"
+                      wrapperStyle={{}}
+                      visible={true}
+                    />
+                    <h2 className="sm:text-lg text-white opacity-80 tracking-wider mt-4 uppercase animate-pulse">
+                      Ana lagi ngitung bentar!
+                    </h2>
+                  </div>
+                )}
+
+                {!loadingResult && (
+                  <Result result={latexSteps} />
+                )}
+              </div>
+            ) }
             { activeButtonIndex === 1 && <History /> }
             { activeButtonIndex === 2 && <Documentation /> }
           </div>

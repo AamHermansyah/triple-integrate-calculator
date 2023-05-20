@@ -2,6 +2,24 @@ import { create, all } from "mathjs";
 
 const math = create(all);
 
+type Bound = {
+  xLower: number,
+  xUpper: number,
+  yLower: number,
+  yUpper: number,
+  zLower: number,
+  zUpper: number
+}
+
+type Variable = 'x' | 'y' | 'z';
+
+export type ResolveResult = {
+  steps: string[];
+  result: string;
+  func: string;
+  lowerUpperBond: Bound;
+}
+
 function splitOperations(expression: string) {
   let result = [];
   let level = 0;
@@ -29,31 +47,39 @@ function splitOperations(expression: string) {
   return result;
 }
 
-type Bound = {
-  xLower: number,
-  xUpper: number,
-  yLower: number,
-  yUpper: number,
-  zLower: number,
-  zUpper: number
-}
+// Filter substitutions
+const filterSubstitutions = (arr: string[]) => {
+  return arr.map((exp) => {
+    // Cek jika ada nilai dengan pola n1 * (a + b)
+    const regexSubstitution1 = /(\d+\*)\(([xyz0-9]+)([+-])([xyz0-9]+)\)(\^\(\d+\))?(\/\(\d+\))?/gi;
+    exp = exp
+            .replaceAll(/\s+/gi, '')
+            .replaceAll(regexSubstitution1, '$1$2$5$6$3$1$4$5$6');
 
-type Variable = 'x' | 'y' | 'z';
+    return exp;
+  })
+}
 
 // Menghitung integral satu
 const calculateIntegral = (
   operations: string,
   lower: number,
   upper: number,
-  variable: Variable
+  variable: Variable,
+  lowerUpperBond: Bound
   ) => 
 {
-  const operationsArray = splitOperations(operations);
-  console.log(variable);
-  console.log(operationsArray);
+  const { xLower, xUpper, yLower, yUpper, zLower, zUpper } = lowerUpperBond;
+  const saveStep: string[] = [];
+  const dxdydzSymbols = variable === 'x' ? 'dydz' : variable === 'y' ? 'dz' : '';
+  let operationsArray = splitOperations(operations);
+  // save step
+  saveStep.push(`--> d${variable} = $\\int_{${lower}}^{${upper}}${math.simplify(operationsArray.join('')).toTex()}$ ${dxdydzSymbols}`);
+
+  // Pengecekan kembali untuk beberapa pola variabel yang kompleks
+  operationsArray = filterSubstitutions(operationsArray);
 
   const substitution = (typeBound: number) => {
-
     return operationsArray.map((exp) => {
       let includesVariableNotUsed: boolean = true;
       
@@ -72,88 +98,186 @@ const calculateIntegral = (
   
       if (!includesVariableNotUsed) {
         const func = math.parse(exp);
-        const simplified = math
+        let simplified = math
           .simplify(func)
           .evaluate({ [variable]: typeBound })
           .toString();
+
+        if (!/^(\-)(?=\d+)/.test(simplified)) {
+          simplified = `+${simplified}`;
+        }
+        
         return `${simplified}`;
       }
   
       return `${exp.replaceAll(variable, `${typeBound}`)}`;
-    });
+    })
+    .join('')
+    .replace(/^00$/gi, '0');
   }
 
-  const upperSubs = substitution(upper).join('');
-  console.log('Batas atas: ', upperSubs);
-  const lowerSubs = substitution(lower).join('');
-  console.log('Batas bawah', lowerSubs);
+  // save step
+  saveStep.push('b. Hitung hasil integral:')
+  saveStep.push(`--> d${variable} = $\\int_{${lower}}^{${upper}}$ batas atas - batas bawah ${dxdydzSymbols}`); 
+  const lowerBoundLatex = `\\left[${math.parse(operationsArray.join('')).toTex()}\\right]`;
+  const upperBoundLatex = `\\int_{${lower}}^{${upper}} \\left[${math.parse(operationsArray.join('')).toTex()}\\right]`;
+  saveStep.push(`--> d${variable} = $${upperBoundLatex} - ${lowerBoundLatex} $ ${dxdydzSymbols}`);
+  saveStep.push('c. Substitusikan:')
+  saveStep.push(`--> d${variable} = $${upperBoundLatex.replaceAll(variable, `${upper}`)} - ${lowerBoundLatex.replaceAll(variable, `${lower}`)} $ ${dxdydzSymbols}`);
+  
+  const upperSubs = substitution(upper);
+  console.log('batas atas:',  upperSubs);
+  const lowerSubs = substitution(lower);
+  console.log('batas bawah:',  lowerSubs);
+  const countIntegral = math.simplify(`(${upperSubs})-(${lowerSubs})`);
+  console.log('hasil bound: ', countIntegral.toString());
+  
+  // untuk menentukan simbol integral di depan
+  let integralSymbol = '';
+  switch(variable) {
+    case 'x':
+      integralSymbol = `\\int_{${zLower}}^{${zUpper}}\\int_{${yLower}}^{${yUpper}}`;
+      break;
+    case 'y':
+      integralSymbol = `\\int_{${zLower}}^{${zUpper}}`;
+      break;
+    case 'z':
+    default:
+      integralSymbol = '';
+      break;
+  }
 
-  const countIntegral = `(${upperSubs})-(${lowerSubs})`;
-  console.log('count integral: ', countIntegral);
-  return math.simplify(countIntegral).toString().replaceAll(/\s+/gi, '');
+  // Pengecekan kembali untuk beberapa pola variabel yang kompleks
+  const filterResult = filterSubstitutions(splitOperations(countIntegral.toString().replaceAll(/\s+/gi, ''))).join('');
+
+  // save step
+  saveStep.push(`--> = $${integralSymbol}${math.parse(filterResult).toTex()}$ ${dxdydzSymbols}`);
+  saveStep.push('------------------------------');
+
+  return {
+    steps: saveStep,
+    result: filterResult
+  };
 }
 
-export const calculateTripleIntegral = (func: string, lowerUpperBond: Bound, partitions: number) => {
-  const { xLower, xUpper, yLower, yUpper, zLower, zUpper } = lowerUpperBond;
-  let expressions = splitOperations(func);
-  
-  ['x', 'y'].forEach((variable) => {
-    expressions = expressions.map((exp) => {
-      
-      const regex = new RegExp(`([^\^])${variable}|${variable}(?=[^\^])|^${variable}`, 'gi');
-      if (regex.test(exp)) {
-        let simplified = math.simplify(exp);
-        const regex = /(\^[^()])$|(\^\(.+\))$/gm;
-        
-        // Ambil nilai pangkat terakhir
-        let squareArray = simplified
-          .toString()
-          .replaceAll(/\s+/gi, '')
-          .match(regex);
-
-        const constants = simplified.toString();
-        console.log(expressions);
-  
-        // Jika ada pangkat
-        if (squareArray) {
-          let square = squareArray[0];
-          square = square.slice(1);
-          let integralResult = exp.replace(regex, '');
-          integralResult = `(${integralResult})^(${square}+1)/(${square}+1)`;
-  
-          return integralResult;
-        }
-
-        return `${simplified.toString()}^(2)/2`;
+export const calculateTripleIntegral = (func: string, lowerUpperBond: Bound) => {
+  return new Promise((resolve, reject) => {
+    let stepArray: string[] = [];
+    const { xLower, xUpper, yLower, yUpper, zLower, zUpper } = lowerUpperBond;
+    let expressions = splitOperations(func);
+    
+    ['x', 'y', 'z'].forEach((variable, index) => {
+      const dxdydzSymbols = variable === 'x' ? 'dxdydz' : variable === 'y' ? 'dydz' : 'dz';
+      // untuk menentukan simbol integral di depan
+      let integralSymbol = '';
+      switch(variable) {
+        case 'x':
+          integralSymbol = `\\int_{${zLower}}^{${zUpper}}\\int_{${yLower}}^{${yUpper}}\\int_{${xLower}}^{${xUpper}}`;
+          break;
+        case 'y':
+          integralSymbol = `\\int_{${zLower}}^{${zUpper}}\\int_{${yLower}}^{${yUpper}}`;
+          break;
+        case 'z':
+        default:
+          integralSymbol = `\\int_{${zLower}}^{${zUpper}}`;
+          break;
       }
-  
-      return exp.concat(`*${variable}`);
+
+      // save step
+      stepArray.push(`Langkah ${index + 1}:`);
+      stepArray.push(`$${integralSymbol}${expressions.join('')}$ ${dxdydzSymbols}`);
+      stepArray.push(`a. Integralkan fungsi dari d${variable}`);
+      let stepThree: string[] = [];
+
+      expressions = expressions.map((exp, index) => {
+        const regex = new RegExp(`([^\^])${variable}|${variable}(?=[^\^])|^${variable}`, 'gi');
+        if (regex.test(exp)) {
+          console.log(variable, expressions);
+          let simplified = math.simplify(exp);
+          const regexSquare = /(\^[^()]+)$|(\^\(.+\))$/gm;
+          
+          // Ambil nilai pangkat terakhir
+          let squareArray = simplified
+            .toString()
+            .replaceAll(/\s+/gi, '')
+            .match(regexSquare);
+    
+          // Jika ada pangkat
+          if (squareArray) {
+            let square = squareArray[0];
+            square = square.slice(1);
+            let integralResult = exp.replaceAll(regexSquare, '');
+            let isMinusInFront = /^\-/gi.test(integralResult);
+
+            // save step three
+            stepThree.push(`${isMinusInFront ? '-' : ''}\\frac{${integralResult.replace(/^\-/gi, '')}^{${square} + 1}}{${square}+1}`);
+
+            if (!/[xyz]/gi.test(square)) {
+              square = math.simplify(`(${square}+1)`).toString();
+            }
+
+            integralResult = `${integralResult}^${square}/${square}`;
+            return integralResult;
+          }
+
+          // save step three
+          stepThree.push(`\\frac{${simplified.toString()}^2}{2}`);
+          return `${simplified.toString()}^(2)/(2)`;
+        }
+    
+        // save step three
+        stepThree.push(exp.concat(`*${variable}`));
+        return exp.concat(`*${variable}`);
+      });
+
+      // combine step three
+      stepArray.push(`--> $${integralSymbol}${stepThree.join('')}$ ${dxdydzSymbols}`);
+      stepThree = [''];
+
+      let lowerBound = xLower;
+      let upperBound = xUpper;
+
+      switch (variable) {
+        case 'y':
+          lowerBound = yLower;
+          upperBound = yUpper;
+          break;
+        case 'z':
+          lowerBound = zLower;
+          upperBound = zUpper;
+          break;
+        case 'x':
+        default:
+          lowerBound = xLower;
+          upperBound = xUpper;
+          break;
+      }
+
+      console.log({lowerBound, upperBound});
+
+      const { steps, result } = calculateIntegral(expressions.join(''), lowerBound, upperBound, variable as Variable, lowerUpperBond);
+
+      // save steps
+      stepArray = [...stepArray, ...steps];
+      expressions = splitOperations(result);
     });
 
-    let lowerBound = xLower;
-    let upperBound = xUpper;
+    // save step
+    const symbolIntegrals = `\\int_{${zLower}}^{${zUpper}}\\int_{${yLower}}^{${yUpper}}\\int_{${xLower}}^{${xUpper}}`;
+    stepArray.push(`Jadi,`);
+    stepArray.push(`$${symbolIntegrals} ${math.parse(func).toTex()} = ${expressions.join('')}$`);
 
-    switch (variable) {
-      case 'y':
-        lowerBound = yLower;
-        upperBound = xUpper;
-        break;
-      case 'z':
-        lowerBound = zLower;
-        upperBound = zUpper;
-      case 'x':
-      default:
-        lowerBound = xLower;
-        upperBound = xUpper;
-        break;
+    const resolveResult: ResolveResult = {
+      steps: stepArray,
+      result: expressions.join(''),
+      func,
+      lowerUpperBond
     }
 
-    expressions = splitOperations(
-      calculateIntegral(expressions.join(''), lowerBound, upperBound, variable as Variable)
-    );
+    setTimeout(() => { 
+      resolve(resolveResult);
+    }, 3000);
   });
-
-  console.log('Hasilnya: ', Number(expressions[0]).toFixed(2));
 };
 
 export const convertSemiLatexToAlgebra = (operations: string): string => {
