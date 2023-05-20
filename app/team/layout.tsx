@@ -8,9 +8,6 @@ function TeamLayout({
 }) {
   return (
     <>
-      <Head>
-        <title>My App</title>
-      </Head>
       {children}
     </>
   )

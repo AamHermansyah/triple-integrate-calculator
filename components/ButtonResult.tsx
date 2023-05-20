@@ -1,15 +1,17 @@
 interface propTypes {
   onClick: () => void,
   className?: string,
-  title?: string
+  title?: string,
+  disabled?: boolean
 }
 
-function ButtonResult({ onClick, className = '', title = '' }: propTypes) {
+function ButtonResult({ onClick, className = '', title = '', disabled }: propTypes) {
   return (
     <button 
       type="button" 
-      className={`${className} btn-gradient-01 text-sm sm:text-base p-4 text-white rounded`}
+      className={`${className} btn-gradient-01 text-sm sm:text-base p-4 text-white rounded disabled:cursor-wait disabled:opacity-50`}
       onClick={() => onClick()}
+      disabled={disabled}
     >
       {title}
       <svg xmlns="http://www.w3.org/2000/svg" width="30px" height="30px" viewBox="0 0 24 24" fill="none">

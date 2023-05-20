@@ -14,12 +14,16 @@ function Result({ result }: propTypes) {
           key={index}
           className={`
             ${regexFilter.test(step) ||
+              step.includes('Penyelesaian') ||
               step.includes('Langkah') ||
               step.includes('Jadi') 
                 ? 'text-sky-500' 
                 : 'bg-white text-slate-700 p-2 px-4 rounded'
             }
-            ${step.includes('Langkah') ? 'text-xl text-white font-semibold' : ''}
+            ${step.includes('Penyelesaian') ||
+              step.includes('Langkah')
+                ? 'text-xl text-white font-semibold' : ''
+            }
             mt-4
             whitespace-nowrap
             w-max

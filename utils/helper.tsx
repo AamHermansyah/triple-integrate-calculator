@@ -18,6 +18,8 @@ export type ResolveResult = {
   result: string;
   func: string;
   lowerUpperBond: Bound;
+  createdAt: Date,
+  id: string
 }
 
 function splitOperations(expression: string) {
@@ -126,11 +128,8 @@ const calculateIntegral = (
   saveStep.push(`--> d${variable} = $${upperBoundLatex.replaceAll(variable, `${upper}`)} - ${lowerBoundLatex.replaceAll(variable, `${lower}`)} $ ${dxdydzSymbols}`);
   
   const upperSubs = substitution(upper);
-  console.log('batas atas:',  upperSubs);
   const lowerSubs = substitution(lower);
-  console.log('batas bawah:',  lowerSubs);
   const countIntegral = math.simplify(`(${upperSubs})-(${lowerSubs})`);
-  console.log('hasil bound: ', countIntegral.toString());
   
   // untuk menentukan simbol integral di depan
   let integralSymbol = '';
@@ -185,14 +184,13 @@ export const calculateTripleIntegral = (func: string, lowerUpperBond: Bound) => 
 
       // save step
       stepArray.push(`Langkah ${index + 1}:`);
-      stepArray.push(`$${integralSymbol}${expressions.join('')}$ ${dxdydzSymbols}`);
+      stepArray.push(`$${integralSymbol}${math.parse(expressions.join('')).toTex()}$ ${dxdydzSymbols}`);
       stepArray.push(`a. Integralkan fungsi dari d${variable}`);
       let stepThree: string[] = [];
 
       expressions = expressions.map((exp, index) => {
         const regex = new RegExp(`([^\^])${variable}|${variable}(?=[^\^])|^${variable}`, 'gi');
         if (regex.test(exp)) {
-          console.log(variable, expressions);
           let simplified = math.simplify(exp);
           const regexSquare = /(\^[^()]+)$|(\^\(.+\))$/gm;
           
@@ -253,8 +251,6 @@ export const calculateTripleIntegral = (func: string, lowerUpperBond: Bound) => 
           break;
       }
 
-      console.log({lowerBound, upperBound});
-
       const { steps, result } = calculateIntegral(expressions.join(''), lowerBound, upperBound, variable as Variable, lowerUpperBond);
 
       // save steps
@@ -266,12 +262,16 @@ export const calculateTripleIntegral = (func: string, lowerUpperBond: Bound) => 
     const symbolIntegrals = `\\int_{${zLower}}^{${zUpper}}\\int_{${yLower}}^{${yUpper}}\\int_{${xLower}}^{${xUpper}}`;
     stepArray.push(`Jadi,`);
     stepArray.push(`$${symbolIntegrals} ${math.parse(func).toTex()} = ${expressions.join('')}$`);
+    stepArray.unshift(`$${symbolIntegrals} ${math.parse(func).toTex()} = ${expressions.join('')}$`);
+    stepArray.unshift(`Penyelesaian:`);
 
     const resolveResult: ResolveResult = {
       steps: stepArray,
       result: expressions.join(''),
-      func,
-      lowerUpperBond
+      func: math.parse(func).toString(),
+      lowerUpperBond,
+      createdAt: new Date(),
+      id: crypto.randomUUID()
     }
 
     setTimeout(() => { 
@@ -284,7 +284,7 @@ export const convertSemiLatexToAlgebra = (operations: string): string => {
   operations = operations.trim().replaceAll(/\s+/gi, '');
   const sqrt = /sqrt\{(.+)\}/gi;
   const includesSqrt = operations.match(sqrt);
-  if (includesSqrt) {
+  if (includesSqrt !== null) {
     operations = operations.replace(sqrt, '$1^(1/2)');
   }
 
@@ -331,4 +331,12 @@ export function convertOperationsToLatex(string: string): string {
     .replaceAll(/sqrt\{(.)\}/gi, '\\sqrt[]{$1}')
     .replaceAll(/\./gi, ' \\cdot ');
   return `$${string}$`;
+}
+
+export function formatDate(date: Date): string {
+  const formattedDate = new Intl
+    .DateTimeFormat('en-GB', { year: 'numeric', month: 'long', day: '2-digit'})
+    .format(date);
+
+  return formattedDate;
 }

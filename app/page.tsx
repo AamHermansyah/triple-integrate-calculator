@@ -10,6 +10,7 @@ import Loading from "@/components/Loading";
 import Result from "@/components/Result";
 import Title from "@/components/Title";
 import { ResolveResult, calculateTripleIntegral } from "@/utils/helper";
+import Link from "next/link";
 import Script from "next/script";
 import { useEffect, useState } from "react";
 import Latex from 'react-latex';
@@ -41,8 +42,18 @@ export default function Home() {
 
     calculateTripleIntegral(func, configs)
       .then((response) => {
-        const { func, lowerUpperBond, result, steps } = response as ResolveResult;
-        setLatexSteps(steps);
+        const data = response as ResolveResult;
+        let database: null | string | ResolveResult[] = localStorage.getItem('history_data');
+
+        if (database === null) {
+          localStorage.setItem('history_data', JSON.stringify([data]));
+        } else {
+          let databaseReplace = JSON.parse(database) as ResolveResult[];
+          databaseReplace = [data, ...databaseReplace];
+          localStorage.setItem('history_data', JSON.stringify(databaseReplace));
+        }
+
+        setLatexSteps(data.steps);
         setLoadingResult(false);
       });
   }
@@ -76,20 +87,24 @@ export default function Home() {
                   onChangeMaxIntegral={(value) => setXUpper(value)}
                 />
               </div>
-              <Latex>
-                {operations}
-              </Latex>
+              <div className="whitespace-nowrap">
+                <Latex>
+                  {operations}
+                </Latex>
+              </div>
               <Dxdydz />
             </div>
             <ButtonResult
               onClick={handleResultButton}
               className="hidden sm:block"
+              disabled={loadingResult}
             />
           </div>
           <ButtonResult
             onClick={handleResultButton}
             className="sm:hidden w-full flex justify-center items-center gap-2 mt-3"
             title="Result"
+            disabled={loadingResult}
           />
         </div>
 
@@ -142,6 +157,16 @@ export default function Home() {
           </div>
         </div>
       </div>
+
+      <div className="fixed bottom-4 sm:bottom-8 right-2 sm:right-6">
+        <Link
+          href='/team'
+          className="text-sm sm:text-base py-2 px-4 border border-sky-500 rounded uppercase tracking-widest bg-black bg-opacity-50 hover:bg-sky-500 hover:shadow-2xl hover:shadow-sky-500"
+        >
+          See My Teams
+        </Link>
+      </div>
+
       <Script id="title">
         {`document.title = 'Triple Integrate | Aam & Zidan'`}
       </Script>
