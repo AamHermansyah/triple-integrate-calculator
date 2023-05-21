@@ -3,6 +3,7 @@
 import ButtonResult from "@/components/ButtonResult";
 import Documentation from "@/components/Documentation";
 import Dxdydz from "@/components/Dxdydz";
+import Footer from "@/components/Footer";
 import FormGenerate from "@/components/FormGenerate";
 import History from "@/components/History";
 import Integral from "@/components/Integral";
@@ -156,9 +157,10 @@ export default function Home() {
             { activeButtonIndex === 2 && <Documentation /> }
           </div>
         </div>
+
       </div>
 
-      <div className="fixed bottom-4 sm:bottom-8 right-2 sm:right-6">
+      <div className="fixed bottom-8 right-6">
         <Link
           href='/team'
           className="text-sm sm:text-base py-2 px-4 border border-sky-500 rounded uppercase tracking-widest bg-black bg-opacity-50 hover:bg-sky-500 hover:shadow-2xl hover:shadow-sky-500"
@@ -166,6 +168,8 @@ export default function Home() {
           See My Teams
         </Link>
       </div>
+
+      <Footer />
 
       <Script id="title">
         {`document.title = 'Triple Integrate | Aam & Zidan'`}

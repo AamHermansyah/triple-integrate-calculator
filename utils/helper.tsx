@@ -258,16 +258,18 @@ export const calculateTripleIntegral = (func: string, lowerUpperBond: Bound) => 
       expressions = splitOperations(result);
     });
 
+    const expressionToLatex = math.parse(expressions.join('')).toTex();
+
     // save step
     const symbolIntegrals = `\\int_{${zLower}}^{${zUpper}}\\int_{${yLower}}^{${yUpper}}\\int_{${xLower}}^{${xUpper}}`;
     stepArray.push(`Jadi,`);
-    stepArray.push(`$${symbolIntegrals} ${math.parse(func).toTex()} = ${expressions.join('')}$`);
-    stepArray.unshift(`$${symbolIntegrals} ${math.parse(func).toTex()} = ${expressions.join('')}$`);
+    stepArray.push(`$${symbolIntegrals} ${math.parse(func).toTex()} = ${expressionToLatex}$`);
+    stepArray.unshift(`$${symbolIntegrals} ${math.parse(func).toTex()} = ${expressionToLatex}$`);
     stepArray.unshift(`Penyelesaian:`);
 
     const resolveResult: ResolveResult = {
       steps: stepArray,
-      result: expressions.join(''),
+      result: expressionToLatex,
       func: math.parse(func).toString(),
       lowerUpperBond,
       createdAt: new Date(),
@@ -335,7 +337,13 @@ export function convertOperationsToLatex(string: string): string {
 
 export function formatDate(date: Date): string {
   const formattedDate = new Intl
-    .DateTimeFormat('en-GB', { year: 'numeric', month: 'long', day: '2-digit'})
+    .DateTimeFormat('en-GB', {
+      year: 'numeric',
+      month: 'long',
+      day: '2-digit',
+      hour: 'numeric',
+      minute: 'numeric'
+    })
     .format(date);
 
   return formattedDate;

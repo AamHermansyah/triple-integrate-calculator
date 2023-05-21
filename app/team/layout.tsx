@@ -1,4 +1,5 @@
 'use client';
+import Footer from "@/components/Footer";
 import Head from "next/head";
 
 function TeamLayout({
@@ -9,6 +10,7 @@ function TeamLayout({
   return (
     <>
       {children}
+      <Footer />
     </>
   )
 }
