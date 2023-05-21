@@ -6,17 +6,8 @@
 @layer base {
   html, body {
     @apply min-h-screen text-white;
-  }
-
-  body::before {
-    content: "";
-    position: fixed;
-    width: 100%;
-    height: calc(100vh + 100px);
-    height: 100dvh;
     background-color: #130f40;
     background-image: linear-gradient(315deg, #130f40 0%, #000000 74%);
-    z-index: -1;
   }
 
   button, a {

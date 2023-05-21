@@ -40,7 +40,7 @@ function FormGenerate({ onGenerateLatex, onGenerateOperations }: propTypes) {
             ${errorMessage ? 'outline outline-2 outline-rose-500' : ''}
             text-sm sm:text-base text-gray-800 p-4 border w-full rounded`
           }
-          placeholder="xyz"
+          placeholder="x * y * z"
         />
         <button
           type="button"

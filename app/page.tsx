@@ -16,14 +16,15 @@ import Script from "next/script";
 import { useEffect, useState } from "react";
 import Latex from 'react-latex';
 import { Triangle } from "react-loader-spinner";
+import Donate from "@/components/Donate";
 
 export default function Home() {
   const [loading, setLoading] = useState(true);
-  const [operations, setOperations] = useState('$xyz$');
+  const [operations, setOperations] = useState('$x*y*z$');
   const [latexSteps, setLatexSteps] = useState<string[] | null>(null);
   const [activeButtonIndex, setActiveButtonIndex] = useState(0);
   const [loadingResult, setLoadingResult] = useState(false);
-  const [func, setFunc] = useState('xyz');
+  const [func, setFunc] = useState('x*y*z');
   const [xLower, setXLower] = useState(0);
   const [xUpper, setXUpper] = useState(0);
   const [yLower, setYLower] = useState(0);
@@ -71,8 +72,18 @@ export default function Home() {
     <>
       <div className="px-4 sm:px-10 py-10 sm:py-14 max-w-[800px] mx-auto">
         <Title title='Triple Integral Calculator' />
+
+        <div className="mt-10 mb-6 text-end">
+          <Link
+            href='/team'
+            className="text-sm sm:text-base py-2 px-4 border border-sky-500 rounded uppercase tracking-widest bg-black bg-opacity-50 hover:bg-sky-500"
+          >
+            See My Teams
+          </Link>
+        </div>
+
         <div>
-          <div className="mt-10 bg-white text-gray-800 flex justify-between items-center gap-4 text-xl pl-8 pr-4 py-8 rounded-md outline outline-sky-700 border border-sky-800 cursor-text overflow-x-auto hidden-scrollbar">
+          <div className="bg-white text-gray-800 flex justify-between items-center gap-4 text-xl pl-8 pr-4 py-8 rounded-md outline outline-sky-700 border border-sky-800 cursor-text overflow-x-auto hidden-scrollbar">
             <div className="flex items-center gap-1">
               <div className="flex">
                 <Integral
@@ -158,15 +169,7 @@ export default function Home() {
           </div>
         </div>
 
-      </div>
-
-      <div className="fixed bottom-8 right-6">
-        <Link
-          href='/team'
-          className="text-sm sm:text-base py-2 px-4 border border-sky-500 rounded uppercase tracking-widest bg-black bg-opacity-50 hover:bg-sky-500 hover:shadow-2xl hover:shadow-sky-500"
-        >
-          See My Teams
-        </Link>
+        <Donate />
       </div>
 
       <Footer />

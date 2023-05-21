@@ -203,12 +203,13 @@ export const calculateTripleIntegral = (func: string, lowerUpperBond: Bound) => 
           // Jika ada pangkat
           if (squareArray) {
             let square = squareArray[0];
-            square = square.slice(1);
-            let integralResult = exp.replaceAll(regexSquare, '');
+            const [newSquare, backExpression] = `${square.replace(/^\^\(?([0-9xyz]+)\)?(.*)$/gi, '$1delimiter$2')}`.split('delimiter');
+            square = newSquare;
+            let integralResult = simplified.toString().replaceAll(regexSquare, '');
             let isMinusInFront = /^\-/gi.test(integralResult);
-
+          
             // save step three
-            stepThree.push(`${isMinusInFront ? '-' : ''}\\frac{${integralResult.replace(/^\-/gi, '')}^{${square} + 1}}{${square}+1}`);
+            stepThree.push(`${isMinusInFront ? '-' : ''}\\frac{${integralResult.replace(/^\-/gi, '')}^{${square} + 1}${backExpression}}{${square}+1}`);
 
             if (!/[xyz]/gi.test(square)) {
               square = math.simplify(`(${square}+1)`).toString();
@@ -216,6 +217,20 @@ export const calculateTripleIntegral = (func: string, lowerUpperBond: Bound) => 
 
             integralResult = `${integralResult}^${square}/${square}`;
             return integralResult;
+          }
+
+          let expRemoveSpace = simplified.toString().replace(/\s+/, '');
+          // Jika ada operasi dengan perkalian variable tanpa pangkat
+          const regexVariable = new RegExp(`${variable}`, 'gi');
+          if (regexVariable.test(expRemoveSpace)) {
+            const variableMatch = expRemoveSpace.match(regexVariable);
+            if (variableMatch) {
+              expRemoveSpace = expRemoveSpace.replace(regexVariable, `${variableMatch}^2`);
+
+              // save step
+              stepThree.push(math.parse(`${expRemoveSpace}/2`).toTex());
+              return `${expRemoveSpace}*(1/2)`;
+            }
           }
 
           // save step three

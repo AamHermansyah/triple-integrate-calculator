@@ -18,11 +18,58 @@ function TeamPage() {
       </div>
       <div className="mb-10 mx-auto px-4 sm:px-10">
         <div className="grid grid-cols-1 mt-8 lg:grid-cols-2 gap-8 max-w-[700px] lg:max-w-none mx-auto">
-          <CardTeam name="Aam Hermansyah" role="Developer">
+          <CardTeam
+            name="Aam Hermansyah"
+            role="Developer"
+            imageUrl="/aam.jpeg"
+            socialMedia={[
+              {
+                key: 'fb',
+                name: 'Facebook',
+                url: 'https://facebook.com/aam.hermansyah.79'
+              },
+              {
+                key: 'gh',
+                name: 'Github',
+                url: 'https://github.com/AamHermansyah'
+              },
+              {
+                key: 'ig',
+                name: 'Instagram',
+                url: 'https://instagram.com/aamhrmnsyah'
+              },
+              {
+                key: 'wa',
+                name: 'Whatsapp',
+                url: 'https://wa.me/6283131193229'
+              }
+            ]}
+          >
             I am Javascript Developer and Designer. I live in Indonesia from Garut, West Java. I am 20 years old and still a student at Siliwangi University, Tasikmalaya. I started coding at 17 years old and I have a lot of experience in development web application such as HTML, CSS, JS, Next Js, React Js, Web Animation and others.
           </CardTeam>
-          <CardTeam name="Muhammad Zidan Fatoni" role="Designer">
-            Dengan pengalaman yang kaya dalam berbagai jenis fotografi, termasuk potret, pernikahan, alam, dan acara khusus, saya telah mengembangkan kepekaan visual yang tajam dan kemampuan teknis yang kuat.  
+          <CardTeam
+            name="Muhammad Zidan Fatoni"
+            role="Designer"
+            imageUrl="/zidan.jpeg"
+            socialMedia={[
+              {
+                key: 'fb',
+                name: 'Facebook',
+                url: 'https://facebook.com/muhamad.z.fatoni'
+              },
+              {
+                key: 'ig',
+                name: 'Instagram',
+                url: 'https://instagram.com/zidanfatoni_'
+              },
+              {
+                key: 'wa',
+                name: 'Whatsapp',
+                url: 'https://wa.me/6282218818549'
+              }
+            ]}
+          >
+            Dengan pengalaman yang kaya dan luas dalam berbagai jenis fotografi, termasuk potret, wedding, prewedding, engagement, siraman/ngaras, poto produk, alam, dan acara khusus, saya telah mengembangkan kepekaan visual yang tajam dan kemampuan teknis yang kuat.  
           </CardTeam>
         </div>
       </div>
