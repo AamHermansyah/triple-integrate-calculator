@@ -159,6 +159,46 @@ const calculateIntegral = (
   };
 }
 
+const calculateNestedIntegral = (operations: string, variable: string): string => {
+  operations = operations.replace(/^\(/gi, '').replace(/\)$/gi, '');
+  let expressions = splitOperations(operations);
+
+  expressions = expressions.map((exp, index) => {
+    const regex = new RegExp(`([^\^])${variable}|${variable}(?=[^\^])|^${variable}`, 'gi');
+    if (regex.test(exp)) {
+      let simplified = math.simplify(exp);
+      const regexSquare = /(\^[^()]+)$|(\^\(.+\))$/gm;
+      
+      // Ambil nilai pangkat terakhir
+      let squareArray = simplified
+        .toString()
+        .replaceAll(/\s+/gi, '')
+        .match(regexSquare);
+
+      // Jika ada pangkat
+      if (squareArray) {
+        let square = squareArray[0];
+        const [newSquare, backExpression] = `${square.replace(/^\^\(?([0-9xyz]+)\)?(.*)$/gi, '$1delimiter$2')}`.split('delimiter');
+        square = newSquare;
+        let integralResult = simplified.toString().replaceAll(regexSquare, '');
+
+        if (!/[xyz]/gi.test(square)) {
+          square = math.simplify(`(${square}+1)`).toString();
+        }
+
+        integralResult = `${integralResult}^${square}/${square}`;
+        return integralResult;
+      }
+
+      return `${simplified.toString()}^(2)/(2)`;
+    }
+
+    return exp.concat(`*${variable}`);
+  });
+
+  return `(${expressions.join('')})`;
+}
+
 export const calculateTripleIntegral = (func: string, lowerUpperBond: Bound) => {
   return new Promise((resolve, reject) => {
     let stepArray: string[] = [];
@@ -219,17 +259,44 @@ export const calculateTripleIntegral = (func: string, lowerUpperBond: Bound) => 
             return integralResult;
           }
 
-          let expRemoveSpace = simplified.toString().replace(/\s+/, '');
+          let expRemoveSpace: string = simplified.toString().replaceAll(/\s+/gi, '');
+          const integrateInBracketsRegex = /(?!\^)\([xyz0-9+\-*]+\)/gi;
+          const nestedIntegral = expRemoveSpace.match(integrateInBracketsRegex);
+
+          // Jika ada kurung
+          if (nestedIntegral) {
+            const result = nestedIntegral.map((exp) => calculateNestedIntegral(exp, variable));
+            let countIndex = 0;
+
+            expRemoveSpace =  expRemoveSpace.split(integrateInBracketsRegex).map((exp) => {
+              if (exp === '') {
+                countIndex += 1;
+                return result[countIndex - 1];
+              }
+
+              return exp;
+            })
+            .filter((exp) => exp !== undefined)
+            .join('');
+
+          } else expRemoveSpace = '';
+
+          if (expRemoveSpace !== '') {
+            return expRemoveSpace;
+          }
+
+          expRemoveSpace = simplified.toString().replaceAll(/\s+/gi, '');
+
           // Jika ada operasi dengan perkalian variable tanpa pangkat
           const regexVariable = new RegExp(`${variable}`, 'gi');
           if (regexVariable.test(expRemoveSpace)) {
             const variableMatch = expRemoveSpace.match(regexVariable);
             if (variableMatch) {
-              expRemoveSpace = expRemoveSpace.replace(regexVariable, `${variableMatch}^2`);
+              expRemoveSpace = expRemoveSpace.replace(regexVariable, `${variableMatch}^2/2`);
 
               // save step
-              stepThree.push(math.parse(`${expRemoveSpace}/2`).toTex());
-              return `${expRemoveSpace}*(1/2)`;
+              stepThree.push(math.parse(`${expRemoveSpace}`).toTex());
+              return `${expRemoveSpace}`;
             }
           }
 

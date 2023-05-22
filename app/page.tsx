@@ -169,7 +169,7 @@ export default function Home() {
           </div>
         </div>
 
-        <Donate />
+        {/* <Donate /> */}
       </div>
 
       <Footer />
