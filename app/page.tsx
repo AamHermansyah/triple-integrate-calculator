@@ -71,9 +71,22 @@ export default function Home() {
   return (
     <>
       <div className="px-4 sm:px-10 py-10 sm:py-14 max-w-[800px] mx-auto">
-        <Title title='Triple Integral Calculator' />
+        <Title title='Triple Integrate Calculator' />
 
-        <div className="mt-10 mb-6 text-end">
+        <div className="mt-10">
+          <Documentation />
+        </div>
+
+        <div className="w-full flex justify-end gap-4 mt-10 mb-6 text-end">
+          <button
+            type="button"
+            onClick={() => {
+              window.open("https://www.google.com", "_self");
+            }}
+            className="text-sm sm:text-base py-2 px-4 rounded uppercase tracking-widest bg-red-500"
+          >
+            Exit
+          </button>
           <Link
             href='/team'
             className="text-sm sm:text-base py-2 px-4 border border-sky-500 rounded uppercase tracking-widest bg-black bg-opacity-50 hover:bg-sky-500"
@@ -124,12 +137,17 @@ export default function Home() {
           <FormGenerate
             onGenerateLatex={(latexExpression) => setOperations(latexExpression)}
             onGenerateOperations={(value) => setFunc(value)}
+            onClear={() => {
+              setFunc('x*y*z');
+              setOperations('$x*y*z$');
+              setLatexSteps(null);
+            }}
           />
         </div>
 
         <div className="min-h-[200px] emerald-400 p-4 sm:p-6 mt-10 border rounded">
           <div className="flex gap-2 sm:gap-4 items-center text-sm sm:text-base mb-6 overflow-x-auto hidden-scrollbar">
-            {['Result', 'History', 'Documentation']
+            {['Result', 'History']
               .map((title, index) => (
                 <button
                   key={index}
@@ -165,7 +183,6 @@ export default function Home() {
               </div>
             ) }
             { activeButtonIndex === 1 && <History /> }
-            { activeButtonIndex === 2 && <Documentation /> }
           </div>
         </div>
 

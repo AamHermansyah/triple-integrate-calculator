@@ -3,10 +3,11 @@ import { FormEventHandler, useRef, useState } from "react";
 
 interface propTypes {
   onGenerateLatex: (latexOperation: string) => void,
-  onGenerateOperations: (latexOperation: string) => void
+  onGenerateOperations: (latexOperation: string) => void,
+  onClear: () => void
 }
 
-function FormGenerate({ onGenerateLatex, onGenerateOperations }: propTypes) {
+function FormGenerate({ onGenerateLatex, onGenerateOperations, onClear }: propTypes) {
   const [errorMessage, setErrorMessage] = useState('');
   const inputRef = useRef<HTMLInputElement | null>(null);
 
@@ -42,13 +43,27 @@ function FormGenerate({ onGenerateLatex, onGenerateOperations }: propTypes) {
           }
           placeholder="x * y * z"
         />
-        <button
-          type="button"
-          className="btn-active text-sm sm:text-base p-4 rounded"
-          onClick={handleGenerate}
-        >
-          Generate
-        </button>
+        <div className="flex gap-4">
+          <button
+            type="button"
+            className="btn-active text-sm sm:text-base p-4 rounded"
+            onClick={handleGenerate}
+          >
+            Generate
+          </button>
+          <button
+            type="button"
+            className="bg-red-500 text-sm sm:text-base p-4 rounded"
+            onClick={() => {
+              onClear();
+              if (inputRef.current) {
+                inputRef.current.value = '';
+              }
+            }}
+          >
+            Clear
+          </button>
+        </div>
       </div>
       {errorMessage && (
         <p className="text-xs mt-2">

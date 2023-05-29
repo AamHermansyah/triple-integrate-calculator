@@ -55,8 +55,8 @@ const filterSubstitutions = (arr: string[]) => {
     // Cek jika ada nilai dengan pola n1 * (a + b)
     const regexSubstitution1 = /(\d+\*)\(([xyz0-9]+)([+-])([xyz0-9]+)\)(\^\(\d+\))?(\/\(\d+\))?/gi;
     exp = exp
-            .replaceAll(/\s+/gi, '')
-            .replaceAll(regexSubstitution1, '$1$2$5$6$3$1$4$5$6');
+      .replaceAll(/\s+/gi, '')
+      .replaceAll(regexSubstitution1, '$1$2$5$6$3$1$4$5$6');
 
     return exp;
   })
@@ -282,6 +282,8 @@ export const calculateTripleIntegral = (func: string, lowerUpperBond: Bound) => 
           } else expRemoveSpace = '';
 
           if (expRemoveSpace !== '') {
+            // Save step
+            stepThree.push(math.parse(`${expRemoveSpace}`).toTex());
             return expRemoveSpace;
           }
 
@@ -301,7 +303,7 @@ export const calculateTripleIntegral = (func: string, lowerUpperBond: Bound) => 
           }
 
           // save step three
-          stepThree.push(`\\frac{${simplified.toString()}^2}{2}`);
+          stepThree.push(`\\frac{${simplified.toTex()}^2}{2}`);
           return `${simplified.toString()}^(2)/(2)`;
         }
     
@@ -402,8 +404,10 @@ export function isValidFormGenerate(string: string): string {
       return 'Sqrt yang anda masukan hanya boleh satu variabel x/y/z atau angka';
     }
   }
-  if (countSameChar(string, '(') !== countSameChar(string, ')')) return 'Salah satu pasangan tanda kurung kurang.';
-  if (countSameChar(string, '{') !== countSameChar(string, '}')) return 'Salah satu pasangan tanda kurung kurawal kurang.';
+  if (countSameChar(string, '(') !== countSameChar(string, ')'))
+    return 'Salah satu pasangan tanda kurung kurang.';
+  if (countSameChar(string, '{') !== countSameChar(string, '}'))
+    return 'Salah satu pasangan tanda kurung kurawal kurang.';
   if (!regexStackRoundBruckets.test(string)) return 'Tidak boleh ada tumpukan tanda kurung kosong';
   if (!regexStackCurlyBruckets.test(string)) return 'Tidak boleh ada tumpukan tanda kurung kurawal kosong';
 
